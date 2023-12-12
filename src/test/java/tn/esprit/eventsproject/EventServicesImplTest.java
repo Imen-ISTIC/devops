@@ -182,7 +182,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
     
         // Simulate the behavior of the event repository
         when(eventRepository.findByParticipantsNomAndParticipantsPrenomAndParticipantsTache(
-                ("Tounsi"), ("Ahmed"), eq(Tache.ORGANISATEUR))).thenReturn(events);
+                ("Tounsi"), ("Ahmed"), (Tache.ORGANISATEUR))).thenReturn(events);
     
         // Simulate the behavior of the event repository and logistics
         // Use lenient mode for unnecessary stubbing
