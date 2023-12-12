@@ -87,8 +87,8 @@ public class EventServicesImpl implements IEventServices {
     }
 
     @Override
-    public List<Logistics> getLogisticsDates(LocalDate date_debut, LocalDate date_fin) {
-        List<Event> events = eventRepository.findByDateDebutBetween(date_debut, date_fin);
+    public List<Logistics> getLogisticsDates(LocalDate datedebut, LocalDate datefin) {
+        List<Event> events = eventRepository.findByDateDebutBetween(datedebut, datefin);
 
         List<Logistics> logisticsList = new ArrayList<>();
         for (Event event : events) {
@@ -107,7 +107,7 @@ public class EventServicesImpl implements IEventServices {
     @Scheduled(cron = "*/60 * * * * *")
     @Override
     public void calculCout() {
-        List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi", "Ahmed", Tache.ORGANISATEUR);
+        List<Event> events = eventRepository.findByParticipantsNomAndParticipantsPrenomAndParticipantsTache("Tounsi", "Ahmed", Tache.ORGANISATEUR);
         for (Event event : events) {
             log.info(event.getDescription());
             Set<Logistics> logisticsSet = event.getLogistics();

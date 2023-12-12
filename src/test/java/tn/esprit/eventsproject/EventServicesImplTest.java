@@ -25,6 +25,7 @@ import java.util.Arrays;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 
 
-public class EventServicesImplTest {
+ class EventServicesImplTest {
 
     @Mock
     private EventRepository eventRepository;
@@ -160,7 +161,11 @@ public class EventServicesImplTest {
         // Call the method to test
         List<Logistics> result = eventServices.getLogisticsDates(LocalDate.now(), LocalDate.now().plusDays(1));
 
-        // Add assertions to verify the result
+          assertNotNull(result, "Result should not be null");
+
+    // Verify that the result contains the expected number of elements
+    assertEquals(2, result.size(), "Result should have two logistics");
+
     }
     @Test
     void testCalculCout() {
@@ -176,8 +181,8 @@ public class EventServicesImplTest {
         List<Event> events = Arrays.asList(event1, event2);
     
         // Simulate the behavior of the event repository
-        when(eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache(
-                eq("Tounsi"), eq("Ahmed"), eq(Tache.ORGANISATEUR))).thenReturn(events);
+        when(eventRepository.findByParticipantsNomAndParticipantsPrenomAndParticipantsTache(
+                ("Tounsi"), ("Ahmed"), eq(Tache.ORGANISATEUR))).thenReturn(events);
     
         // Simulate the behavior of the event repository and logistics
         // Use lenient mode for unnecessary stubbing
@@ -196,7 +201,11 @@ public class EventServicesImplTest {
         // Call the method to test
         eventServices.calculCout();
     
-        // Add assertions to verify the result
+        verify(eventRepository, times(7)).save(any(Event.class));
+
+    // Verify that the logistics have been saved to the repository
+    verify(logisticsRepository, times(7)).save(any(Logistics.class));
+
     }
     
 }

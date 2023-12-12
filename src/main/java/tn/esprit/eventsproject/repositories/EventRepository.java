@@ -13,5 +13,5 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     List<Event> findByDateDebutBetween(LocalDate date1, LocalDate date2);
 
-    List<Event> findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache(String nom, String prenom, Tache tache);
+    List<Event> findByParticipantsNomAndParticipantsPrenomAndParticipantsTache(String nom, String prenom, Tache tache);
 }
