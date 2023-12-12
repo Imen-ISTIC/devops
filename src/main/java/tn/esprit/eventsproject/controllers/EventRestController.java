@@ -51,6 +51,7 @@ public LogisticsDTO addAffectLog(@RequestBody LogisticsDTO logisticsDTO, @PathVa
 
     // Convert the added Logistics entity to LogisticsDTO
     return LogisticsConverter.convertToDTO(addedLogistics);
+    
 }
 
     @GetMapping("/getLogs/{d1}/{d2}")
