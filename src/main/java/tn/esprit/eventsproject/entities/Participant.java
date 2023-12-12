@@ -1,18 +1,15 @@
 package tn.esprit.eventsproject.entities;
 
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 public class Participant implements Serializable {
     @Id
@@ -24,5 +21,4 @@ public class Participant implements Serializable {
     Tache tache;
     @ManyToMany
     Set<Event> events;
-
 }

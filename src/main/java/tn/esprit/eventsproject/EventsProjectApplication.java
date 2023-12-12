@@ -2,10 +2,12 @@ package tn.esprit.eventsproject;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
+@ComponentScan(basePackages = {"tn.esprit.eventsproject"})
 public class EventsProjectApplication {
 
     public static void main(String[] args) {

@@ -1,10 +1,12 @@
 package tn.esprit.eventsproject;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import tn.esprit.eventsproject.entities.Event;
 import tn.esprit.eventsproject.entities.Logistics;
 import tn.esprit.eventsproject.entities.Participant;
@@ -12,16 +14,24 @@ import tn.esprit.eventsproject.entities.Tache;
 import tn.esprit.eventsproject.repositories.EventRepository;
 import tn.esprit.eventsproject.repositories.LogisticsRepository;
 import tn.esprit.eventsproject.repositories.ParticipantRepository;
+import tn.esprit.eventsproject.services.EventServicesImpl;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.List;
+import java.util.Arrays;
 
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 
-@SpringBootTest
-@ExtendWith(MockitoExtension.class)
+
 public class EventServicesImplTest {
 
     @Mock
@@ -36,52 +46,157 @@ public class EventServicesImplTest {
     @InjectMocks
     private EventServicesImpl eventServices;
 
+    @BeforeEach
+    void init() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
     void testAddAffectEvenParticipant() {
-        // Créer un participant fictif pour le test
+        // Create a participant for the test
         Participant participant = new Participant();
         participant.setIdPart(1);
+        participant.setEvents(new HashSet<>());
 
-        // Créer un événement fictif pour le test
+        // Create an event for the test
         Event event = new Event();
         event.setIdEvent(1);
 
-        // Simuler le comportement du repository participant
-        when(participantRepository.findById(1)).thenReturn(java.util.Optional.of(participant));
+        // Simulate the behavior of the participant repository
+        when(participantRepository.findById(1)).thenReturn(Optional.of(participant));
 
-        // Appeler la méthode à tester
+        // Simulate the behavior of the event repository
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+
+        // Call the method to test
         Event result = eventServices.addAffectEvenParticipant(event, 1);
 
-        // Vérifier que la méthode save du repository a été appelée
-        verify(eventRepository).save(event);
+        // Verify that the save method of the repository has been called
+        verify(eventRepository, times(1)).save(any(Event.class));
 
-        // Vérifier que l'événement a été ajouté à la liste d'événements du participant
-        assertTrue(participant.getEvents().contains(event));
+        // Verify that the event has been added to the list of events for the participant
+        assertEquals(1, participant.getEvents().size());
+        assertTrue(participant.getEvents().contains(result));
+    }
+
+    @Test
+    void testAddAffectEvenParticipantWithSet() {
+        // Create participants for the test
+        Participant participant1 = new Participant();
+        participant1.setIdPart(1);
+
+        Participant participant2 = new Participant();
+        participant2.setIdPart(2);
+
+        Set<Participant> participants = new HashSet<>();
+        participants.add(participant1);
+        participants.add(participant2);
+
+        // Create an event for the test
+        Event event = new Event();
+        event.setParticipants(participants);
+
+        // Simulate the behavior of the participant repository
+        when(participantRepository.findById(1)).thenReturn(Optional.of(participant1));
+        when(participantRepository.findById(2)).thenReturn(Optional.of(participant2));
+
+        // Simulate the behavior of the event repository
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+
+        // Call the method to test
+        Event result = eventServices.addAffectEvenParticipant(event);
+
+        // Verify that the save method of the repository has been called
+        verify(eventRepository, times(1)).save(any(Event.class));
+
+        // Add additional assertions if needed
     }
 
     @Test
     void testAddAffectLog() {
-        // Créer un événement fictif pour le test
+        // Create an event for the test
         Event event = new Event();
         event.setDescription("Test Event");
+        event.setLogistics(new HashSet<>());
 
-        // Créer un objet Logistics fictif pour le test
+        // Create a Logistics object for the test
         Logistics logistics = new Logistics();
-        logistics.setId(1);
+        logistics.setIdLog(1);
         logistics.setReserve(true);
 
-        // Simuler le comportement du repository event
+        // Simulate the behavior of the event repository
         when(eventRepository.findByDescription("Test Event")).thenReturn(event);
 
-        // Appeler la méthode à tester
+        // Simulate the behavior of the repositories
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(logisticsRepository.save(any(Logistics.class))).thenReturn(logistics);
+
+        // Call the method to test
         Logistics result = eventServices.addAffectLog(logistics, "Test Event");
 
-        // Vérifier que la méthode save du repository logistics a été appelée
-        verify(logisticsRepository).save(logistics);
+        // Verify that the save methods have been called
+        verify(eventRepository, times(1)).save(any(Event.class));
+        verify(logisticsRepository, times(1)).save(any(Logistics.class));
 
-        // Vérifier que la logistique a été ajoutée à la liste de logistiques de l'événement
-        assertTrue(event.getLogistics().contains(logistics));
+        // Verify that the logistics has been added to the list of logistics for the event
+        assertEquals(1, event.getLogistics().size());
+        assertTrue(event.getLogistics().contains(result));
     }
 
-    // Ajoutez d'autres tests selon les besoins
+    @Test
+    void testGetLogisticsDates() {
+        // Create events for the test
+        Event event1 = new Event();
+        event1.setLogistics(new HashSet<>());
+
+        Event event2 = new Event();
+        event2.setLogistics(new HashSet<>());
+
+        List<Event> events = Arrays.asList(event1, event2);
+
+        // Simulate the behavior of the event repository
+        when(eventRepository.findByDateDebutBetween(any(LocalDate.class), any(LocalDate.class))).thenReturn(events);
+
+        // Call the method to test
+        List<Logistics> result = eventServices.getLogisticsDates(LocalDate.now(), LocalDate.now().plusDays(1));
+
+        // Add assertions to verify the result
+    }
+    @Test
+    void testCalculCout() {
+        // Create events for the test
+        Event event1 = new Event();
+        event1.setDescription("Event 1");
+        event1.setLogistics(new HashSet<>());
+    
+        Event event2 = new Event();
+        event2.setDescription("Event 2");
+        event2.setLogistics(new HashSet<>());
+    
+        List<Event> events = Arrays.asList(event1, event2);
+    
+        // Simulate the behavior of the event repository
+        when(eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache(
+                eq("Tounsi"), eq("Ahmed"), eq(Tache.ORGANISATEUR))).thenReturn(events);
+    
+        // Simulate the behavior of the event repository and logistics
+        // Use lenient mode for unnecessary stubbing
+        lenient().when(eventRepository.save(any(Event.class)))
+                .thenReturn(event1)
+                .then(returnsFirstArg())
+                .then(returnsFirstArg())
+                .then(returnsFirstArg())
+                .then(returnsFirstArg())
+                .then(returnsFirstArg())
+                .then(returnsFirstArg())
+                .then(returnsFirstArg());
+    
+        when(logisticsRepository.save(any(Logistics.class))).thenReturn(new Logistics());
+    
+        // Call the method to test
+        eventServices.calculCout();
+    
+        // Add assertions to verify the result
+    }
+    
 }

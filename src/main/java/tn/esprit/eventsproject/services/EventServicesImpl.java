@@ -1,5 +1,4 @@
 package tn.esprit.eventsproject.services;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,10 +16,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class EventServicesImpl implements IEventServices{
+public class EventServicesImpl implements IEventServices {
 
     private final EventRepository eventRepository;
     private final ParticipantRepository participantRepository;
@@ -34,27 +34,34 @@ public class EventServicesImpl implements IEventServices{
     @Override
     public Event addAffectEvenParticipant(Event event, int idParticipant) {
         Participant participant = participantRepository.findById(idParticipant).orElse(null);
-        if(participant.getEvents() == null){
-            Set<Event> events = new HashSet<>();
-            events.add(event);
-            participant.setEvents(events);
-        }else {
-            participant.getEvents().add(event);
+        if (participant != null) {
+            if (participant.getEvents() == null) {
+                Set<Event> events = new HashSet<>();
+                events.add(event);
+                participant.setEvents(events);
+            } else {
+                participant.getEvents().add(event);
+            }
+            return eventRepository.save(event);
+        } else {
+            // Handle the case where participant is null (maybe throw an exception or log an error)
+            return null;
         }
-        return eventRepository.save(event);
     }
 
     @Override
     public Event addAffectEvenParticipant(Event event) {
         Set<Participant> participants = event.getParticipants();
-        for(Participant aParticipant:participants){
+        for (Participant aParticipant : participants) {
             Participant participant = participantRepository.findById(aParticipant.getIdPart()).orElse(null);
-            if(participant.getEvents() == null){
-                Set<Event> events = new HashSet<>();
-                events.add(event);
-                participant.setEvents(events);
-            }else {
-                participant.getEvents().add(event);
+            if (participant != null) {
+                if (participant.getEvents() == null) {
+                    Set<Event> events = new HashSet<>();
+                    events.add(event);
+                    participant.setEvents(events);
+                } else {
+                    participant.getEvents().add(event);
+                }
             }
         }
         return eventRepository.save(event);
@@ -62,17 +69,21 @@ public class EventServicesImpl implements IEventServices{
 
     @Override
     public Logistics addAffectLog(Logistics logistics, String descriptionEvent) {
-      Event event = eventRepository.findByDescription(descriptionEvent);
-      if(event.getLogistics() == null){
-          Set<Logistics> logisticsSet = new HashSet<>();
-          logisticsSet.add(logistics);
-          event.setLogistics(logisticsSet);
-          eventRepository.save(event);
-      }
-      else{
-          event.getLogistics().add(logistics);
-      }
-        return logisticsRepository.save(logistics);
+        Event event = eventRepository.findByDescription(descriptionEvent);
+        if (event != null) {
+            if (event.getLogistics() == null) {
+                Set<Logistics> logisticsSet = new HashSet<>();
+                logisticsSet.add(logistics);
+                event.setLogistics(logisticsSet);
+            } else {
+                event.getLogistics().add(logistics);
+            }
+            eventRepository.save(event);
+            return logisticsRepository.save(logistics);
+        } else {
+            // Handle the case where event is null (maybe throw an exception or log an error)
+            return null;
+        }
     }
 
     @Override
@@ -80,17 +91,13 @@ public class EventServicesImpl implements IEventServices{
         List<Event> events = eventRepository.findByDateDebutBetween(date_debut, date_fin);
 
         List<Logistics> logisticsList = new ArrayList<>();
-        for (Event event:events){
-            if(event.getLogistics().isEmpty()){
-
-                return null;
-            }
-
-            else {
+        for (Event event : events) {
+            if (event.getLogistics() != null) {
                 Set<Logistics> logisticsSet = event.getLogistics();
-                for (Logistics logistics:logisticsSet){
-                    if(logistics.isReserve())
+                for (Logistics logistics : logisticsSet) {
+                    if (logistics.isReserve()) {
                         logisticsList.add(logistics);
+                    }
                 }
             }
         }
@@ -100,21 +107,21 @@ public class EventServicesImpl implements IEventServices{
     @Scheduled(cron = "*/60 * * * * *")
     @Override
     public void calculCout() {
-        List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi","Ahmed", Tache.ORGANISATEUR);
-    // eventRepository.findAll();
-        float somme = 0f;
-        for(Event event:events){
+        List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi", "Ahmed", Tache.ORGANISATEUR);
+        for (Event event : events) {
             log.info(event.getDescription());
             Set<Logistics> logisticsSet = event.getLogistics();
-            for (Logistics logistics:logisticsSet){
-                if(logistics.isReserve())
-                    somme+=logistics.getPrixUnit()*logistics.getQuantite();
+            float somme = 0f;
+            if (logisticsSet != null) {
+                for (Logistics logistics : logisticsSet) {
+                    if (logistics.isReserve()) {
+                        somme += logistics.getPrixUnit() * logistics.getQuantite();
+                    }
+                }
             }
             event.setCout(somme);
             eventRepository.save(event);
-            log.info("Cout de l'Event "+event.getDescription()+" est "+ somme);
-
+            log.info("Cout de l'Event " + event.getDescription() + " est " + somme);
         }
     }
-
 }
