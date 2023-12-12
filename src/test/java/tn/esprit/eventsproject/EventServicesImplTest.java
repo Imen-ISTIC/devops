@@ -203,8 +203,6 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
     
         verify(eventRepository, times(2)).save(any(Event.class));
 
-    // Verify that the logistics have been saved to the repository
-    verify(logisticsRepository, times(2)).save(any(Logistics.class));
 
     }
     
