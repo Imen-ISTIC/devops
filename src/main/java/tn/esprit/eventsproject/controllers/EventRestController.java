@@ -30,14 +30,28 @@ public class EventRestController {
     }
 
     @PostMapping("/addEvent/{id}")
-    public Event addEventPart(@RequestBody Event event, @PathVariable("id") int idPart) {
-        return eventServices.addAffectEvenParticipant(event, idPart);
-    }
+public EventDTO addEventPart(@RequestBody EventDTO eventDTO, @PathVariable("id") int idPart) {
+    // Convert EventDTO to Event entity
+    Event event = EventConverter.convertToEntity(eventDTO);
 
-    @PutMapping("/addAffectLog/{description}")
-    public Logistics addAffectLog(@RequestBody Logistics logistics, @PathVariable("description") String descriptionEvent) {
-        return eventServices.addAffectLog(logistics, descriptionEvent);
-    }
+    // Add the event and associate it with the participant
+    Event addedEvent = eventServices.addAffectEvenParticipant(event, idPart);
+
+    // Convert the added Event entity to EventDTO
+    return EventConverter.convertToDTO(addedEvent);
+}
+
+@PutMapping("/addAffectLog/{description}")
+public LogisticsDTO addAffectLog(@RequestBody LogisticsDTO logisticsDTO, @PathVariable("description") String descriptionEvent) {
+    // Convert LogisticsDTO to Logistics entity
+    Logistics logistics = LogisticsConverter.convertToEntity(logisticsDTO);
+
+    // Call the service method with the Logistics entity
+    Logistics addedLogistics = eventServices.addAffectLog(logistics, descriptionEvent);
+
+    // Convert the added Logistics entity to LogisticsDTO
+    return LogisticsConverter.convertToDTO(addedLogistics);
+}
 
     @GetMapping("/getLogs/{d1}/{d2}")
     public List<Logistics> getLogistiquesDates(@PathVariable("d1") LocalDate datedebut, @PathVariable("d2") LocalDate datefin) {
